@@ -6,8 +6,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Arrays;
+import java.util.AbstractCollection;
 
-public class MultiSetClass<E> implements MultiSet {
+public class MultiSetClass<E> extends AbstractCollection<E> implements MultiSet<E> {
 
     private int multiSetSize;
     private HashMap<E, Integer> multiSet;
@@ -18,7 +19,7 @@ public class MultiSetClass<E> implements MultiSet {
     }
 
     public MultiSetClass(final Collection<? extends E> collection) {
-        multiSet = new HashMap<>();
+        this();
         this.addAll(collection);
         multiSetSize = collection.size();
     }
@@ -29,24 +30,13 @@ public class MultiSetClass<E> implements MultiSet {
     }
 
     @Override
-    public boolean isEmpty() {
-        return multiSetSize == 0;
-    }
-
-    @Override
-    public boolean contains(final Object o) {
-        return multiSet.getOrDefault(o, 0) != 0;
-    }
-
-    @Override
-    public Iterator iterator() {
+    public Iterator<E> iterator() {
         return new MultiSetIterator();
     }
 
     @Override
     public boolean add(final Object o) {
-        multiSet.put((E) o, multiSet.getOrDefault(o, 0) + 1);
-        multiSetSize++;
+        this.add(o, 1);
         return true;
     }
 
@@ -63,15 +53,7 @@ public class MultiSetClass<E> implements MultiSet {
 
     @Override
     public boolean remove(final Object e) {
-        if (multiSet.getOrDefault(e, 0) != 0) {
-            multiSet.put((E) e, multiSet.getOrDefault(e, 0) - 1);
-            multiSetSize--;
-            if (multiSet.get(e) == 0) {
-                multiSet.remove(e);
-            }
-            return true;
-        }
-        return false;
+        return this.remove(e, 1) != 0;
     }
 
     @Override
@@ -129,7 +111,7 @@ public class MultiSetClass<E> implements MultiSet {
     public boolean removeAll(final Collection c) {
         boolean wasRemoved = false;
         for (Object k : c) {
-            if (multiSet.getOrDefault(k, 0) != 0) {
+            if (multiSet.containsKey(k)) {
                 multiSetSize -= multiSet.get(k);
                 multiSet.remove(k);
                 wasRemoved = true;
@@ -188,31 +170,7 @@ public class MultiSetClass<E> implements MultiSet {
         if (!(o instanceof MultiSetClass)) {
             return false;
         }
-        MultiSetClass<E> otherMultiSet = new MultiSetClass<>();
-        for (Iterator iterator = ((MultiSetClass) o).iterator(); iterator.hasNext();) {
-            otherMultiSet.add(iterator.next());
-        }
-        if (otherMultiSet.size() != this.size()) {
-            return false;
-        }
-        Iterator multiSetIterator = this.iterator();
-        while (multiSetIterator.hasNext()) {
-            if (!otherMultiSet.remove(multiSetIterator.next())) {
-                return false;
-            }
-        }
-        return otherMultiSet.isEmpty();
-    }
-
-    @Override
-    public boolean containsAll(final Collection c) {
-        boolean ifContainsAll = true;
-        for (Object value : c) {
-            if (!this.contains(value)) {
-                ifContainsAll = false;
-            }
-        }
-        return ifContainsAll;
+        return this.multiSet.equals(((MultiSetClass) o).multiSet);
     }
 
     private class MultiSetIterator implements Iterator {
@@ -260,5 +218,4 @@ public class MultiSetClass<E> implements MultiSet {
             }
         }
     }
-
 }
